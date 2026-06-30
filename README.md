@@ -34,6 +34,7 @@
   - [多模态](#多模态)
   - [llama.cpp / GGUF](#llamacpp--gguf)
   - [HuggingFace 生态](#huggingface-生态)
+- [主流模型 Ascend 适配矩阵](#主流模型-ascend-适配矩阵)
 - [超大规模模型训练实践](#超大规模模型训练实践)
 - [开发者工具链](#开发者工具链)
 - [社区与学习资源](#社区与学习资源)
@@ -192,6 +193,8 @@
 | [verl](https://github.com/volcengine/verl) | 字节跳动开源 RL 训练框架，2026 Q1-Q2 一等公民支持 Ascend | ✅ |
 | [OpenRLHF](https://github.com/jianzhnie/OpenRLHF) | OpenRLHF 社区 Ascend 适配版（PPO / GRPO / DPO / KTO / REINFORCE++） | ⚠️ |
 | [slime-ascend](https://gitcode.com/Ascend/slime-ascend) | 智谱 AI Post-Training / RL 框架（Megatron + SGLang） | ✅ |
+| [KTransformers](https://github.com/kvcache-ai/ktransformers) | 异构推理/微调框架，2025.10 起支持 Ascend NPU，可与 LLaMA-Factory 联调超大 MoE 模型 | ✅ |
+| [self-llm](https://github.com/datawhalechina/self-llm) | Datawhale《开源大模型食用指南》Ascend 版，覆盖 Qwen3 / DeepSeek / Llama 等 50+ 模型部署与微调 | ✅ |
 
 ### 社区算子与编译器
 
@@ -207,6 +210,7 @@
 | [AgentSDK](https://gitcode.com/Ascend/AgentSDK) | 昇腾官方企业级 Agent 训推框架 | ✅ |
 | [LangChain](https://python.langchain.ac.cn/docs/integrations/providers/ascend/) | LLM 应用框架，提供 `AscendEmbeddings` | ✅ |
 | [LangGraph](https://github.com/langchain-ai/langgraph) | Agent 图编排框架 | ✅ |
+| [Langchain-Chatchat](https://github.com/chatchat-space/Langchain-Chatchat) | 基于 LangChain 的本地 RAG + Agent 应用框架，支持 Qwen / ChatGLM / Llama 等 | ✅ |
 | [Dify](https://github.com/langgenius/dify) | LLM 应用开发平台，原生 `latest-gpu-cn` 镜像 | ✅ |
 | [FastChat](https://github.com/lm-sys/FastChat) | 对话服务框架，需修改 `model_adapter.py` | ⚠️ |
 
@@ -259,16 +263,49 @@
 
 ---
 
+## 主流模型 Ascend 适配矩阵
+
+以下汇总主流开源大模型在 Ascend NPU 上的推理/训练适配情况，基于 [vllm-ascend 官方支持列表](https://docs.vllm.ai/projects/ascend/en/main/user_guide/support_matrix/supported_models.html) 和 [Datawhale self-llm Ascend 教程](https://github.com/datawhalechina/self-llm/blob/master/support_model_Ascend.md)。
+
+### 文本生成模型
+
+| 模型系列 | vLLM-Ascend | SGLang | MindIE | 训练框架 | 备注 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **DeepSeek V3 / V3.1 / V3.2 / R1 / Distill** | ✅ | ✅ | ✅ | MindSpeed-LLM / torchtitan-npu / verl | Day-0 支持，MoE 优化成熟 |
+| **DeepSeek-V4-Pro / Flash** | ✅ | ✅ | ✅ | torchtitan-npu / verl | 首个万亿参数 Ascend 全栈适配 |
+| **Qwen3 / Qwen3-MoE / Qwen3-Next / Qwen3-Coder** | ✅ | ✅ | ✅ | MindSpeed-LLM / ms-swift / LLaMA-Factory | 阿里官方重点支持 |
+| **Qwen2 / Qwen2.5 / QwQ-32B** | ✅ | ✅ | ✅ | MindSpeed-LLM / ms-swift / LLaMA-Factory | 社区最常用系列之一 |
+| **Llama 2 / 3 / 3.1 / 3.2 / 4** | ✅ | ✅ | ⚠️ | MindSpeed-LLM / LLaMA-Factory | Llama-4 实验性支持 |
+| **GLM-4 / GLM-4.1V / GLM-5** | ✅ | ✅ | ⚠️ | MindSpeed-LLM / slime-ascend | 智谱原生支持 |
+| **Kimi-K2 / MiniMax-M2 / MiniMax-M3** | ✅ | ✅ | ⚠️ | slime-ascend / verl | Day-0 支持逐步完善 |
+| **Gemma-2 / Gemma-3 / Phi-3 / Phi-4 / Mistral** | ✅ | 🟡 | ⚠️ | — | 部分需测试 |
+| **Baichuan / ChatGLM / InternLM** | ✅ | 🟡 | ⚠️ | MindSpeed-LLM | 国产模型适配较好 |
+
+### 多模态模型
+
+| 模型 | vLLM-Ascend | SGLang | MindIE-SD | 备注 |
+| :--- | :--- | :--- | :--- | :--- |
+| **Qwen2-VL / Qwen2.5-VL / Qwen3-VL** | ✅ | ✅ | — | Vision-Language 理解 |
+| **Qwen2.5-Omni / QVQ / Qwen2-Audio** | ✅ | 🟡 | — | 音频/多模态 |
+| **LLaVA 1.5/1.6 / InternVL2 / InternVL2.5** | ✅ | ✅ | — | 视觉对话 |
+| **MiniCPM-V / Gemma-3 (MM)** | ✅ | 🟡 | — | 端侧多模态 |
+| **Wan2.1 / HunyuanVideo / CogVideoX** | — | — | ✅ | 视频生成（MindSpeed-MM / MindIE-SD） |
+| **SD3.5 / SDXL / Flux** | — | — | ✅ | 图像生成 |
+
+> **图例**：✅ 官方/原生支持；🟡 社区验证/部分支持；⚠️ 需适配或有限支持；— 不适用或待验证。
+
+---
+
 ## 超大规模模型训练实践
 
 ### 华为盘古系列（昇腾原生）
 
-| 模型 | 参数量 | 训练集群 | MFU / 关键指标 |
-| :--- | :--- | :--- | :--- |
-| **盘古 Ultra** | 135B Dense | 8192 张昇腾 NPU | MFU **52%**；13.2T tokens |
-| **盘古 Ultra MoE** | 718B（激活 39B） | 万卡级 CloudMatrix 384 | 18.9% → 30% → **41%**（万卡）；256 路由专家 |
-| **盘古 Pro MoE** | 72B（激活 16B） | 4000 颗昇腾 NPU | 13T tokens（2025.06 开源） |
-| **盘古 Embedded** | 7B | 昇腾 NPU | 端侧小模型，已开源 |
+| 模型 | 参数量 | 训练集群 | MFU / 关键指标 | 参考链接 |
+| :--- | :--- | :--- | :--- | :--- |
+| **盘古 Ultra** | 135B Dense | 8192 张昇腾 NPU | MFU **52%**；13.2T tokens | [arXiv:2504.07866](https://arxiv.org/abs/2504.07866) |
+| **盘古 Ultra MoE** | 718B（激活 39B） | 万卡级 CloudMatrix 384 | 18.9% → 30% → **41%**（万卡）；256 路由专家 | [arXiv:2505.04519](https://arxiv.org/abs/2505.04519) |
+| **盘古 Pro MoE** | 72B（激活 16B） | 4000 颗昇腾 NPU | 13T tokens（2025.06 开源） | [arXiv:2505.21411](https://arxiv.org/abs/2505.21411) |
+| **盘古 Embedded** | 7B | 昇腾 NPU | 端侧小模型，已开源 | — |
 
 **关键技术创新**：
 - **DSSN（Depth-Scaled Sandwich-Norm）**：稳定超深网络训练
@@ -279,22 +316,22 @@
 
 ### DeepSeek 系列
 
-| 模型 | Ascend 训练情况 |
-| :--- | :--- |
-| **DeepSeek-V3** | 官方 2048 H800 训练；后续在昇腾 910B 完成适配验证 |
-| **DeepSeek-V4** | **首个公开宣称与昇腾完成全栈适配的万亿参数 frontier 模型**（V4-Pro 1.6T / V4-Flash 284B）；基于 910B/910C 集群完成 SFT+RLHF 全参数后训练，MFU **34.9%** |
-| **DeepSeek-R1** | 基于 H800 训练；昇腾侧以推理适配为主 |
+| 模型 | Ascend 训练情况 | 参考链接 |
+| :--- | :--- | :--- |
+| **DeepSeek-V3** | 官方 2048 H800 训练；后续在昇腾 910B 完成适配验证 | [DeepSeek-V3 GitHub](https://github.com/deepseek-ai/DeepSeek-V3) |
+| **DeepSeek-V4** | **首个公开宣称与昇腾完成全栈适配的万亿参数 frontier 模型**（V4-Pro 1.6T / V4-Flash 284B）；基于 910B/910C 集群完成 SFT+RLHF 全参数后训练，MFU **34.9%** | [Model Card (PDF)](https://fe-static.deepseek.com/chat/transparency/deepseek-V4-model-card-EN.pdf) / [虎嗅-910C训练V4-Pro](https://www.huxiu.com/ainews/12966.html) / [搜狐-910C万亿参数训练](https://www.sohu.com/a/1032474134_114760) |
+| **DeepSeek-R1** | 基于 H800 训练；昇腾侧以推理适配为主 | [DeepSeek-R1 GitHub](https://github.com/deepseek-ai/DeepSeek-R1) |
 
 ### 其他厂商
 
-| 厂商 / 模型 | Ascend 训练情况 | 关键信息 |
-| :--- | :--- | :--- |
-| **美团 LongCat-2.0** | 5–6 万张国产加速卡预训练 | 万亿参数级，1M 上下文 |
-| **讯飞星火 V4.0 / X2** | "飞星一号/二号" 昇腾万卡集群 | 训练效率从 A100 的 30-50% → 85-95% |
-| **百度 ERNIE 4.5** | 300B MoE（A47B）；PaddlePaddle 支持昇腾 | H800 MFU 47%；昇腾适配推进中 |
-| **智谱 GLM-4.5** | 355B MoE；slime 框架支持昇腾 | 23T tokens |
-| **智谱 GLM-Image** | **首个基于昇腾 + MindSpore 全程训练的 SOTA 多模态模型** | 全流程国产 |
-| **阿里 Qwen 系列** | ModelArts 官方支持昇腾训练 | SFT / LoRA / GRPO 全流程 |
+| 厂商 / 模型 | Ascend 训练情况 | 关键信息 | 参考链接 |
+| :--- | :--- | :--- | :--- |
+| **美团 LongCat-2.0** | 5–6 万张国产加速卡预训练 | 万亿参数级，1M 上下文 | [LongCat-2.0 Preview](https://www.longcat.ai/) |
+| **讯飞星火 V4.0 / X2** | "飞星一号/二号" 昇腾万卡集群 | 训练效率从 A100 的 30-50% → 85-95% | [讯飞星火官网](https://xinghuo.xfyun.cn/) |
+| **百度 ERNIE 4.5** | 300B MoE（A47B）；PaddlePaddle 支持昇腾 | H800 MFU 47%；昇腾适配推进中 | [ERNIE 4.5 GitHub](https://github.com/PaddlePaddle/ERNIE) |
+| **智谱 GLM-4.5** | 355B MoE；slime 框架支持昇腾 | 23T tokens | [智谱 AI](https://www.zhipuai.cn/) |
+| **智谱 GLM-Image** | **首个基于昇腾 + MindSpore 全程训练的 SOTA 多模态模型** | 全流程国产 | [智谱 GLM-Image](https://www.zhipuai.cn/) |
+| **阿里 Qwen 系列** | ModelArts 官方支持昇腾训练 | SFT / LoRA / GRPO 全流程 | [Qwen GitHub](https://github.com/QwenLM/Qwen) / [ModelArts](https://www.huaweicloud.com/product/modelarts.html) |
 
 ### 训练实践总结
 
@@ -305,6 +342,28 @@
 | **MoE MFU** | 盘古 Ultra MoE 达 **41%**（万卡），All-to-All 通信是主要瓶颈 |
 | **与 NVIDIA 差距** | 单卡 BF16：910B 约 H100 的 32%，910C 约 80%；集群效率约为 H100/H800 的 35%-70% |
 | **关键挑战** | 超长稳训练稳定性、MoE All-to-All 通信、FP8 极致优化、大规模 RL 训练 |
+
+### 相关论文与 HuggingFace 模型仓库
+
+| 模型 | HuggingFace 仓库 | 技术报告 / 论文 |
+| :--- | :--- | :--- |
+| **盘古 Ultra** | 尚未在 HuggingFace 公开发布 | [arXiv:2504.07866](https://arxiv.org/abs/2504.07866) |
+| **盘古 Ultra MoE** | 尚未在 HuggingFace 公开发布 | [arXiv:2505.04519](https://arxiv.org/abs/2505.04519) |
+| **盘古 Pro MoE** | 尚未在 HuggingFace 公开发布 | [arXiv:2505.21411](https://arxiv.org/abs/2505.21411) |
+| **DeepSeek-V3** | [deepseek-ai/DeepSeek-V3](https://huggingface.co/deepseek-ai/DeepSeek-V3) | [DeepSeek-V3 GitHub](https://github.com/deepseek-ai/DeepSeek-V3) |
+| **DeepSeek-V4** | [deepseek-ai/DeepSeek-V4](https://huggingface.co/deepseek-ai/DeepSeek-V4) | [Model Card (PDF)](https://fe-static.deepseek.com/chat/transparency/deepseek-V4-model-card-EN.pdf) |
+| **DeepSeek-R1** | [deepseek-ai/DeepSeek-R1](https://huggingface.co/deepseek-ai/DeepSeek-R1) | [DeepSeek-R1 GitHub](https://github.com/deepseek-ai/DeepSeek-R1) |
+| **Qwen3** | [Qwen/Qwen3](https://huggingface.co/Qwen/Qwen3) | [Qwen GitHub](https://github.com/QwenLM/Qwen3) |
+| **GLM-4 / GLM-4.1V / GLM-5** | [THUDM/glm-4-9b-chat](https://huggingface.co/THUDM/glm-4-9b-chat) / [THUDM/GLM-4.1V](https://huggingface.co/THUDM/GLM-4.1V) | [ChatGLM GitHub](https://github.com/THUDM/GLM-4) |
+| **ERNIE 4.5** | 百度文心系列主要在 ModelScope / 百度平台 | [ERNIE GitHub](https://github.com/PaddlePaddle/ERNIE) |
+
+### 相关新闻报道
+
+- [深圳国产芯片成功训练万亿级 AI 大模型，依托华为昇腾 910C](https://www.sohu.com/a/1032474134_114760) — 搜狐，2026.06
+- [昇腾 910C 千卡集群完成 1.6 万亿参数大模型全参数训练](https://post.smzdm.com/p/ae6pl3g4) — 什么值得买，2026.06
+- [国产 AI 算力突破：华为昇腾 910C 完成 1.6 万亿参数大模型训练](https://k.sina.com.cn/article_7096020433_1a6f4add106801ifzw.html) — 新浪，2026.06
+- [Huawei Ascend 950 PR Is Powering China’s Push to Break CUDA Dependence](https://www.trendforce.com/news/2026/04/07/news-decoding-deepseek-v4-how-huaweis-ascend-950-pr-is-powering-chinas-push-to-break-cuda-dependence/) — TrendForce，2026.04
+- [Huawei Cloud Model-as-a-Service on the CloudMatrix384 SuperPod](https://arxiv.org/abs/2508.02520) — arXiv，2025.08
 
 ---
 
